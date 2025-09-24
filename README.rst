@@ -93,7 +93,20 @@ Usage Example
 
 .. code-block:: python
 
-    import board
+	import board
+	import busio
+	import adafruit_pcm51xx
+
+	i2c = board.I2C()
+
+	pcm = adafruit_pcm51xx.PCM51XX(i2c)
+
+	pcm.volume_db = (0.0, 0.0)
+	left_db, right_db = pcm.volume_db
+	print(f"Volume set to: L={left_db}dB, R={right_db}dB")
+
+	pcm.mute = False
+	print(f"Muted: {pcm.mute}")
 
 Documentation
 =============

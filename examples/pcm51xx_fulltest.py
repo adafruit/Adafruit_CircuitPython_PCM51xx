@@ -8,8 +8,10 @@ Basic test example for the Adafruit PCM51xx CircuitPython library
 """
 
 import time
+
 import board
 import busio
+
 import adafruit_pcm51xx
 
 print("Adafruit PCM51xx Test")
@@ -143,7 +145,7 @@ if power_state == adafruit_pcm51xx.POWER_POWERDOWN:
     print("Powerdown")
 elif power_state == adafruit_pcm51xx.POWER_WAIT_CP_VALID:
     print("Wait for CP voltage valid")
-elif power_state in (adafruit_pcm51xx.POWER_CALIBRATION_1, adafruit_pcm51xx.POWER_CALIBRATION_2):
+elif power_state in {adafruit_pcm51xx.POWER_CALIBRATION_1, adafruit_pcm51xx.POWER_CALIBRATION_2}:
     print("Calibration")
 elif power_state == adafruit_pcm51xx.POWER_VOLUME_RAMP_UP:
     print("Volume ramp up")

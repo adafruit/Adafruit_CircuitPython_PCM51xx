@@ -5,13 +5,16 @@
 """
 Sine tone playback test for the PCM5122 I2S DAC.
 """
-import time
+
 import array
 import math
+import time
+
 import audiobusio
 import audiocore
 import board
 import busio
+
 import adafruit_pcm51xx
 
 # Initialize I2C
@@ -40,7 +43,7 @@ frequency = 440  # Set this to the Hz of the tone you want to generate.
 length = 8000 // frequency
 sine_wave = array.array("h", [0] * length)
 for i in range(length):
-    sine_wave[i] = int((math.sin(math.pi * 2 * i / length)) * tone_volume * (2 ** 15 - 1))
+    sine_wave[i] = int((math.sin(math.pi * 2 * i / length)) * tone_volume * (2**15 - 1))
 sine_wave_sample = audiocore.RawSample(sine_wave)
 
 while True:

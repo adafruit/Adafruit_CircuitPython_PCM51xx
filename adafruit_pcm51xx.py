@@ -26,11 +26,13 @@ Implementation Notes
 """
 
 import time
-from micropython import const
+
 from adafruit_bus_device.i2c_device import I2CDevice
+from micropython import const
 
 try:
     import typing  # pylint: disable=unused-import
+
     from busio import I2C
 except ImportError:
     pass
@@ -117,7 +119,7 @@ GPIO5_UNDER_VOLT_03 = const(0x0F)
 GPIO5_PLL_OUT_DIV4 = const(0x10)
 
 
-class PCM51XX:
+class PCM51XX:  # noqa: PLR0904
     """Driver for the PCM51xx I2S DAC.
 
     :param ~busio.I2C i2c_bus: The I2C bus the PCM51xx is connected to.
@@ -127,17 +129,17 @@ class PCM51XX:
     def __init__(self, i2c_bus: I2C, address: int = PCM51XX_DEFAULT_ADDR) -> None:
         self.i2c_device = I2CDevice(i2c_bus, address)
         self._current_page = 0xFF  # Initialize to invalid page to force first selection
-        
+
         # Initialize the device
         self._init()
-        
+
         # Create pin objects
-        self.pin1 = self._Pin(self, 1)
-        self.pin2 = self._Pin(self, 2)
-        self.pin3 = self._Pin(self, 3)
-        self.pin4 = self._Pin(self, 4)
-        self.pin5 = self._Pin(self, 5)
-        self.pin6 = self._Pin(self, 6)
+        self.pin1 = self.Pin(self, 1)
+        self.pin2 = self.Pin(self, 2)
+        self.pin3 = self.Pin(self, 3)
+        self.pin4 = self.Pin(self, 4)
+        self.pin5 = self.Pin(self, 5)
+        self.pin6 = self.Pin(self, 6)
 
     def _write_register(self, register: int, value: int) -> None:
         """Write a byte to a register."""
@@ -160,7 +162,7 @@ class PCM51XX:
         """Write a single bit in a register."""
         current = self._read_register(register)
         if value:
-            current |= (1 << bit)
+            current |= 1 << bit
         else:
             current &= ~(1 << bit)
         self._write_register(register, current)
@@ -184,21 +186,21 @@ class PCM51XX:
     def _init(self) -> None:
         """Initialize the device."""
         self._buf1 = bytearray(1)
-        
+
         # Force page selection
         self._select_page(0)
-        
+
         # Put device into standby before reset
         self.standby = True
-        
+
         # Reset registers and modules
         self.reset_registers()
         self.reset_modules()
-        
+
         # Take out of powerdown and standby
         self.powerdown = False
         self.standby = False
-        
+
         # Configure error detection and default settings
         self.ignore_fs_detect = True
         self.ignore_bck_detect = True
@@ -207,52 +209,52 @@ class PCM51XX:
         self.ignore_clock_missing = True
         self.disable_clock_autoset = False
         self.ignore_pll_unlock = True
-        
+
         # Configure PLL and clocks
         self.pll_enabled = True
         self.pll_reference = PLL_REF_BCK
         self.dac_source = DAC_CLK_PLL
-        
+
         # Configure I2S
         self.i2s_format = I2S_FORMAT_I2S
         self.i2s_size = I2S_SIZE_16BIT
-        
+
         # Configure mute
         self.auto_mute = False
         self.mute = True
 
     def reset_modules(self) -> bool:
         """Reset interpolation filter and DAC modules.
-        
+
         :return: True if successful, False if timeout
         """
         self._select_page(0)
         self._write_register_bit(_RESET, 4, True)
-        
+
         # Wait for auto-clearing with timeout (max 100ms)
         timeout = time.monotonic() + 0.1
         while time.monotonic() < timeout:
             if not self._read_register_bit(_RESET, 4):
                 return True
             time.sleep(0.001)
-        
+
         return False
 
     def reset_registers(self) -> bool:
         """Reset registers back to their initial values.
-        
+
         :return: True if successful, False if timeout
         """
         self._select_page(0)
         self._write_register_bit(_RESET, 0, True)
-        
+
         # Wait for auto-clearing with timeout (max 100ms)
         timeout = time.monotonic() + 0.1
         while time.monotonic() < timeout:
             if not self._read_register_bit(_RESET, 0):
                 return True
             time.sleep(0.001)
-        
+
         return False
 
     @property
@@ -285,7 +287,7 @@ class PCM51XX:
 
     @i2s_format.setter
     def i2s_format(self, value: int) -> None:
-        if value not in (I2S_FORMAT_I2S, I2S_FORMAT_TDM, I2S_FORMAT_RTJ, I2S_FORMAT_LTJ):
+        if value not in {I2S_FORMAT_I2S, I2S_FORMAT_TDM, I2S_FORMAT_RTJ, I2S_FORMAT_LTJ}:
             raise ValueError(f"Invalid I2S format: {value}. Must be one of I2S_FORMAT_*")
         self._select_page(0)
         self._write_register_bits(_I2S_CONFIG, 2, 4, value)
@@ -298,7 +300,7 @@ class PCM51XX:
 
     @i2s_size.setter
     def i2s_size(self, value: int) -> None:
-        if value not in (I2S_SIZE_16BIT, I2S_SIZE_20BIT, I2S_SIZE_24BIT, I2S_SIZE_32BIT):
+        if value not in {I2S_SIZE_16BIT, I2S_SIZE_20BIT, I2S_SIZE_24BIT, I2S_SIZE_32BIT}:
             raise ValueError(f"Invalid I2S size: {value}. Must be one of I2S_SIZE_*")
         self._select_page(0)
         self._write_register_bits(_I2S_CONFIG, 2, 0, value)
@@ -311,7 +313,7 @@ class PCM51XX:
 
     @pll_reference.setter
     def pll_reference(self, value: int) -> None:
-        if value not in (PLL_REF_SCK, PLL_REF_BCK, PLL_REF_GPIO):
+        if value not in {PLL_REF_SCK, PLL_REF_BCK, PLL_REF_GPIO}:
             raise ValueError(f"Invalid PLL reference: {value}. Must be one of PLL_REF_*")
         self._select_page(0)
         self._write_register_bits(_PLL_REF, 3, 4, value)
@@ -319,31 +321,31 @@ class PCM51XX:
     @property
     def volume_db(self) -> tuple[float, float]:
         """Digital volume in dB for left and right channels.
-        
+
         :return: Tuple of (left_db, right_db)
         """
         self._select_page(0)
         left_val = self._read_register(_DIGITAL_VOLUME_L)
         right_val = self._read_register(_DIGITAL_VOLUME_R)
-        
+
         # Convert register values to dB
         left_db = 24.0 - (left_val * 0.5)
         right_db = 24.0 - (right_val * 0.5)
-        
+
         return (left_db, right_db)
 
     @volume_db.setter
     def volume_db(self, values: tuple[float, float]) -> None:
         """Set digital volume in dB for both channels.
-        
+
         :param values: Tuple of (left_db, right_db) from -103.5 to 24.0 dB
         """
         left_db, right_db = values
-        
+
         # Convert dB to register values (0.5dB steps)
         left_val = int(max(0, min(255, (24.0 - left_db) / 0.5)))
         right_val = int(max(0, min(255, (24.0 - right_db) / 0.5)))
-        
+
         self._select_page(0)
         self._write_register(_DIGITAL_VOLUME_L, left_val)
         self._write_register(_DIGITAL_VOLUME_R, right_val)
@@ -368,7 +370,7 @@ class PCM51XX:
 
     @dac_source.setter
     def dac_source(self, value: int) -> None:
-        if value not in (DAC_CLK_MASTER, DAC_CLK_PLL, DAC_CLK_SCK, DAC_CLK_BCK):
+        if value not in {DAC_CLK_MASTER, DAC_CLK_PLL, DAC_CLK_SCK, DAC_CLK_BCK}:
             raise ValueError(f"Invalid DAC clock source: {value}. Must be one of DAC_CLK_*")
         self._select_page(0)
         self._write_register_bits(_DAC_CLK_SRC, 3, 4, value)
@@ -459,10 +461,21 @@ class PCM51XX:
     def gpio5_output(self, value: int) -> None:
         # Define valid GPIO5 output values
         valid_gpio5_outputs = (
-            GPIO5_OFF, GPIO5_DSP_OUTPUT, GPIO5_REGISTER_OUTPUT, GPIO5_AUTO_MUTE_FLAG,
-            GPIO5_AUTO_MUTE_L, GPIO5_AUTO_MUTE_R, GPIO5_CLOCK_INVALID, GPIO5_SDOUT,
-            GPIO5_ANALOG_MUTE_L, GPIO5_ANALOG_MUTE_R, GPIO5_PLL_LOCK, GPIO5_CHARGE_PUMP_CLK,
-            GPIO5_UNDER_VOLT_07, GPIO5_UNDER_VOLT_03, GPIO5_PLL_OUT_DIV4
+            GPIO5_OFF,
+            GPIO5_DSP_OUTPUT,
+            GPIO5_REGISTER_OUTPUT,
+            GPIO5_AUTO_MUTE_FLAG,
+            GPIO5_AUTO_MUTE_L,
+            GPIO5_AUTO_MUTE_R,
+            GPIO5_CLOCK_INVALID,
+            GPIO5_SDOUT,
+            GPIO5_ANALOG_MUTE_L,
+            GPIO5_ANALOG_MUTE_R,
+            GPIO5_PLL_LOCK,
+            GPIO5_CHARGE_PUMP_CLK,
+            GPIO5_UNDER_VOLT_07,
+            GPIO5_UNDER_VOLT_03,
+            GPIO5_PLL_OUT_DIV4,
         )
         if value not in valid_gpio5_outputs:
             raise ValueError(f"Invalid GPIO5 output: {value:#x}. Must be one of GPIO5_*")
@@ -549,51 +562,51 @@ class PCM51XX:
 
     def digital_read(self, pin: int) -> bool:
         """Read digital state of GPIO pin.
-        
+
         :param pin: GPIO pin number (1-6)
         :return: True if pin is high, False if low
         :raises ValueError: If pin number is invalid
         """
         if not 1 <= pin <= 6:
             raise ValueError("Pin must be between 1 and 6")
-        
+
         self._select_page(0)
         return self._read_register_bit(_GPIO_INPUT, pin - 1)
 
     def _set_gpio_direction(self, gpio: int, output: bool) -> None:
         """Set GPIO direction.
-        
+
         :param gpio: GPIO pin number (1-6)
         :param output: True for output, False for input
         :raises ValueError: If gpio number is invalid
         """
         if not 1 <= gpio <= 6:
             raise ValueError("GPIO must be between 1 and 6")
-        
+
         self._select_page(0)
         self._write_register_bit(_GPIO_ENABLE, gpio - 1, output)
 
     def _set_gpio_register_output(self, gpio: int, high: bool) -> None:
         """Set GPIO register output value.
-        
+
         :param gpio: GPIO pin number (1-6)
         :param high: True for high, False for low
         :raises ValueError: If gpio number is invalid
         """
         if not 1 <= gpio <= 6:
             raise ValueError("GPIO must be between 1 and 6")
-        
+
         self._select_page(0)
         self._write_register_bit(_GPIO_CONTROL, gpio - 1, high)
-    
-    class _Pin:
-        """Inner class for digitalio-style pin interface."""
-        
+
+    class Pin:
+        """Digitalio-style pin interface."""
+
         def __init__(self, pcm: "PCM51XX", pin: int) -> None:
             self._pcm = pcm
             self._pin = pin
             self._direction = None
-        
+
         def switch_to_output(self, value: bool = False, drive_mode: int = None) -> None:
             """Switch the pin to output mode."""
             if self._pin == 5:
@@ -602,12 +615,12 @@ class PCM51XX:
             self._pcm._set_gpio_direction(self._pin, True)
             self._pcm._set_gpio_register_output(self._pin, value)
             self._direction = True
-        
+
         def switch_to_input(self, pull: int = None) -> None:
             """Switch the pin to input mode."""
             self._pcm._set_gpio_direction(self._pin, False)
             self._direction = False
-        
+
         @property
         def direction(self) -> int:
             """Get pin direction (0=INPUT, 1=OUTPUT)."""
@@ -615,7 +628,7 @@ class PCM51XX:
                 self._pcm._select_page(0)
                 self._direction = self._pcm._read_register_bit(_GPIO_ENABLE, self._pin - 1)
             return 1 if self._direction else 0
-        
+
         @property
         def value(self) -> bool:
             """Get or set the pin value."""
@@ -624,7 +637,7 @@ class PCM51XX:
                 return self._pcm._read_register_bit(_GPIO_CONTROL, self._pin - 1)
             else:  # Input mode
                 return self._pcm.digital_read(self._pin)
-        
+
         @value.setter
         def value(self, val: bool) -> None:
             """Set the pin value (output mode only)."""

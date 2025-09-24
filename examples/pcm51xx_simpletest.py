@@ -8,6 +8,7 @@ Simple test for the PCM5122 I2S DAC.
 
 import board
 import busio
+
 import adafruit_pcm51xx
 
 # Initialize I2C

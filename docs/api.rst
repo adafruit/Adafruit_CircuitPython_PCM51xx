@@ -8,4 +8,5 @@ API Reference
 #############
 
 .. automodule:: adafruit_pcm51xx
-    :members:
+   :members:
+   :member-order: bysource

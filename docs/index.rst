@@ -24,14 +24,12 @@ Table of Contents
 .. toctree::
     :caption: Tutorials
 
-.. todo:: Add any Learn guide links here. If there are none, then simply delete this todo and leave
-    the toctree above for use later.
+Learn Guide <https://learn.adafruit.com/adafruit-pcm5122-i2s-dac>
 
 .. toctree::
     :caption: Related Products
 
-.. todo:: Add any product links here. If there are none, then simply delete this todo and leave
-    the toctree above for use later.
+Adafruit PCM5122 I2S DAC with Line Level Output <https://www.adafruit.com/product/6421>
 
 .. toctree::
     :caption: Other Links
